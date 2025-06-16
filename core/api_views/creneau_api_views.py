@@ -34,42 +34,6 @@ auth_header_param = openapi.Parameter(
         tags = tags
     )
 )
-@method_decorator(
-    name="create",
-    decorator=swagger_auto_schema(
-        operation_summary="Créer un type de creneau",
-        operation_description="Crée un nouveau type de creneau (réservé aux enseignants)",
-        manual_parameters=[auth_header_param],
-        tags = tags
-    )
-)
-@method_decorator(
-    name="update",
-    decorator=swagger_auto_schema(
-        operation_summary="Modifier un creneau",
-        operation_description="Modifie complètement un creneau (réservé aux enseignants)",
-        manual_parameters=[auth_header_param],
-        tags = tags
-    )
-)
-@method_decorator(
-    name="partial_update",
-    decorator=swagger_auto_schema(
-        operation_summary="Modifier partiellement un creneau",
-        operation_description="Modifie partiellement un creneau (réservé aux enseignants)",
-        manual_parameters=[auth_header_param],
-        tags = tags
-    )
-)
-@method_decorator(
-    name="destroy",
-    decorator=swagger_auto_schema(
-        operation_summary="Supprimer un creneau",
-        operation_description="Supprime un creneau (réservé aux enseignants)",
-        manual_parameters=[auth_header_param],
-        tags = tags
-    )
-)
 class CreneauHoraireViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CreneauHoraire.objects.all()
     serializer_class = CreneauHoraireSerializer

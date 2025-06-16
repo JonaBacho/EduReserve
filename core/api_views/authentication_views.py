@@ -49,42 +49,6 @@ auth_header_param = openapi.Parameter(
         tags = tags
     )
 )
-@method_decorator(
-    name="create",
-    decorator=swagger_auto_schema(
-        operation_summary="Créer d'un utilisateur",
-        operation_description="Crée d'un utilisateur (réservé aux enseignants)",
-        manual_parameters=[auth_header_param],
-        tags = tags
-    )
-)
-@method_decorator(
-    name="update",
-    decorator=swagger_auto_schema(
-        operation_summary="Modifier un utilisateur",
-        operation_description="Modifie complètement un utilisateur (réservé aux enseignants)",
-        manual_parameters=[auth_header_param],
-        tags = tags
-    )
-)
-@method_decorator(
-    name="partial_update",
-    decorator=swagger_auto_schema(
-        operation_summary="Modifier partiellement un utilisateur",
-        operation_description="Modifie partiellement un utilisateur (réservé aux enseignants)",
-        manual_parameters=[auth_header_param],
-        tags = tags
-    )
-)
-@method_decorator(
-    name="destroy",
-    decorator=swagger_auto_schema(
-        operation_summary="Supprimer un utilisateur",
-        operation_description="Supprime un utilisateur (réservé aux enseignants)",
-        manual_parameters=[auth_header_param],
-        tags = tags
-    )
-)
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
