@@ -7,7 +7,7 @@ services:
     volumes:
       - ./volumes/db.sqlite3:/app/db.sqlite3:rw
     ports:
-      - "8010:8009"
+      - "8011:8009"
     #env_file:
     #  - .env
     #depends_on:
