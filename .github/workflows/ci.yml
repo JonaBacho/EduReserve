@@ -77,7 +77,7 @@ jobs:
       env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run: |
-          scp  -o StrictHostKeyChecking=no -r ./EduReserve ./core ./Dockerfile ./manage.py ./requirements.txt ./docker-compose.yml ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP_ADDRESS }}:/home/${{ secrets.REMOTE_USER }}/eduReserve/backend
+          scp  -o StrictHostKeyChecking=no -r ./.env ./EduReserve ./core ./Dockerfile ./manage.py ./requirements.txt ./docker-compose.yml ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP_ADDRESS }}:/home/${{ secrets.REMOTE_USER }}/eduReserve/backend
           ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP_ADDRESS }} << 'ENDSSH'
             cd /home/${{ secrets.REMOTE_USER }}/eduReserve/backend
             source .env
