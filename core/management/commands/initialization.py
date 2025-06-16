@@ -1,5 +1,8 @@
 # management/commands/init_reservations.py
 import os
+import random
+import string
+from django.utils.text import slugify
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -8,6 +11,7 @@ from core.models import (
     Formation, Salle, TypeMateriel, Materiel, CreneauHoraire,
     ReservationSalle, ReservationMateriel, RecapitulatifHoraire
 )
+
 
 User = get_user_model()
 
@@ -152,6 +156,15 @@ class Command(BaseCommand):
                 )
                 self.stdout.write(f'Étudiant créé: {prenom} {nom}')
 
+    def generate_unique_code(self, prefix, max_length=11):
+        """Génère un code unique avec un préfixe basé sur le nom de la formation"""
+        base = slugify(prefix).upper().replace('-', '')[:6]  # max 6 chars
+        while True:
+            suffix = ''.join(random.choices(string.digits, k=max_length - len(base)))
+            code = f"{base}{suffix}"
+            if not Formation.objects.filter(code=code).exists():
+                return code
+
     def create_formations(self):
         """Crée les formations avec leurs responsables"""
         formations_data = [
@@ -168,11 +181,12 @@ class Command(BaseCommand):
                 nom=nom,
                 defaults={
                     'description': description,
-                    'responsable': responsable
+                    'responsable': responsable,
+                    'code': self.generate_unique_code(nom)
                 }
             )
             if created:
-                self.stdout.write(f'✓ Formation créée: {nom}')
+                self.stdout.write(f'Formation créée: {nom}')
 
     def create_salles(self):
         """Crée les salles de cours"""
