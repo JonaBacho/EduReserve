@@ -25,7 +25,6 @@ COPY . /app
 # Exposer le port sur lequel l'application va fonctionner
 EXPOSE 8009
 
-
 # Définir la variable d'environnement pour désactiver le buffering des sorties (optionnel)
 ENV PYTHONUNBUFFERED=1
 

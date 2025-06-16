@@ -68,6 +68,7 @@ class MaterielAdmin(admin.ModelAdmin):
 class CreneauHoraireAdmin(admin.ModelAdmin):
     list_display = ('nom', 'heure_debut', 'heure_fin')
     ordering = ('heure_debut',)
+    search_fields = ('nom',)
 
 
 @admin.register(ReservationSalle)
