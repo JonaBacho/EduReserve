@@ -5,11 +5,41 @@ from django.utils import timezone
 from core.models import ReservationSalle, ReservationMateriel, CreneauHoraire
 from core.serializers import ReservationMaterielSerializer, ReservationSalleSerializer, CreneauHoraireSerializer
 from core.permissions import CanViewPlanningDetails
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 class PlanningGeneralView(generics.ListAPIView):
     """Vue pour consulter le planning général des salles et des materiels"""
     permission_classes = [CanViewPlanningDetails]
 
+    @swagger_auto_schema(
+        operation_summary="Planning général",
+        operation_description="Récupère le planning général des salles et matériels pour une date donnée, organisé par créneaux horaires",
+        manual_parameters=[
+            openapi.Parameter(
+                'date',
+                openapi.IN_QUERY,
+                description="Date du planning (format: YYYY-MM-DD). Par défaut: aujourd'hui",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATE
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Planning récupéré avec succès",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'date': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
+                        'planning': openapi.Schema(type=openapi.TYPE_OBJECT),
+                        'creneaux': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                   items=openapi.Schema(type=openapi.TYPE_OBJECT))
+                    }
+                )
+            )
+        },
+        tags=["Planning"]
+    )
     def get(self, request, *args, **kwargs):
         date = request.query_params.get('date', timezone.now().date())
         if isinstance(date, str):

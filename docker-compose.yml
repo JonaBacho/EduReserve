@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+  edu-reserve:
+    image: "${MY_IMAGE}"
+    container_name: edu-reserve
+    restart: always
+    volumes:
+      - ./volumes/db.sqlite3:/app/db.sqlite3:rw
+    ports:
+      - "8009:8009"
+    #env_file:
+    #  - .env
+    #depends_on:
+    #    - db

@@ -8,6 +8,8 @@ from core.models import RecapitulatifHoraire, ReservationMateriel, ReservationSa
 from core.paginations import StandardResultsSetPagination
 from core.serializers import UserSerializer, RecapitulatifHoraireSerializer, ReservationMaterielSerializer, \
     ReservationSalleSerializer, MaterielSerializer
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 User = get_user_model()
 
@@ -17,6 +19,54 @@ class PlanningEnseignantView(generics.ListAPIView):
     permission_classes = [CanViewRecapitulatifHoraire]
     pagination_class = StandardResultsSetPagination
 
+    @swagger_auto_schema(
+        operation_summary="Planning d'un enseignant",
+        operation_description="Récupère le planning complet d'un enseignant avec ses récapitulatifs horaires et réservations",
+        manual_parameters=[
+            openapi.Parameter(
+                'enseignant_id',
+                openapi.IN_PATH,
+                description="ID de l'enseignant",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            ),
+            openapi.Parameter(
+                'date_debut',
+                openapi.IN_QUERY,
+                description="Date de début du filtre (format: YYYY-MM-DD)",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATE
+            ),
+            openapi.Parameter(
+                'date_fin',
+                openapi.IN_QUERY,
+                description="Date de fin du filtre (format: YYYY-MM-DD)",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATE
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Planning de l'enseignant récupéré avec succès",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'enseignant': openapi.Schema(type=openapi.TYPE_OBJECT),
+                        'recapitulatifs': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                         items=openapi.Schema(type=openapi.TYPE_OBJECT)),
+                        'reservations_salles': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                              items=openapi.Schema(type=openapi.TYPE_OBJECT)),
+                        'reservation_materiels': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                                items=openapi.Schema(type=openapi.TYPE_OBJECT))
+                    }
+                )
+            ),
+            404: openapi.Response(
+                description="Enseignant non trouvé"
+            )
+        },
+        tags=["Planning"]
+    )
     def get(self, request, enseignant_id, *args, **kwargs):
         try:
             enseignant = User.objects.get(id=enseignant_id, user_type='enseignant')

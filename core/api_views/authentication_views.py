@@ -7,10 +7,84 @@ from django.contrib.auth import update_session_auth_hash
 from rest_framework_simplejwt.tokens import RefreshToken
 from core.serializers import UserSerializer, RegisterSerializer, PasswordResetSerializer, LoginSerializer
 from core.paginations import StandardResultsSetPagination
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from django.utils.decorators import method_decorator
 
 User = get_user_model()
 
 
+tags = ["types-matériels"]
+auth_header_param = openapi.Parameter(
+    name="Authorization",
+    in_=openapi.IN_HEADER,
+    description="Token JWT pour l'authentification (Bearer <token>)",
+    type=openapi.TYPE_STRING,
+    required=True
+)
+
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="Liste des utilisateurs",
+        operation_description="Récupère la liste de tous les utilisateurs avec filtres optionnels",
+        manual_parameters=[
+            openapi.Parameter(
+                'user_type',
+                openapi.IN_QUERY,
+                description="Filtrer par type d'utilisateur (enseignant, responsable_formation, etc.)",
+                type=openapi.TYPE_STRING
+            ),
+            auth_header_param
+        ],
+        tags = tags
+    )
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Détails d'un utilisateur",
+        operation_description="Récupère les détails d'un utilisateur spécifique",
+        manual_parameters=[auth_header_param],
+        tags = tags
+    )
+)
+@method_decorator(
+    name="create",
+    decorator=swagger_auto_schema(
+        operation_summary="Créer d'un utilisateur",
+        operation_description="Crée d'un utilisateur (réservé aux enseignants)",
+        manual_parameters=[auth_header_param],
+        tags = tags
+    )
+)
+@method_decorator(
+    name="update",
+    decorator=swagger_auto_schema(
+        operation_summary="Modifier un utilisateur",
+        operation_description="Modifie complètement un utilisateur (réservé aux enseignants)",
+        manual_parameters=[auth_header_param],
+        tags = tags
+    )
+)
+@method_decorator(
+    name="partial_update",
+    decorator=swagger_auto_schema(
+        operation_summary="Modifier partiellement un utilisateur",
+        operation_description="Modifie partiellement un utilisateur (réservé aux enseignants)",
+        manual_parameters=[auth_header_param],
+        tags = tags
+    )
+)
+@method_decorator(
+    name="destroy",
+    decorator=swagger_auto_schema(
+        operation_summary="Supprimer un utilisateur",
+        operation_description="Supprime un utilisateur (réservé aux enseignants)",
+        manual_parameters=[auth_header_param],
+        tags = tags
+    )
+)
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -27,6 +101,28 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
 
+    @swagger_auto_schema(
+        operation_summary="Créer un compte",
+        operation_description="Crée un nouveau compte utilisateur",
+        request_body=RegisterSerializer,
+        responses={
+            201: openapi.Response(
+                description="Compte créé avec succès",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'user': openapi.Schema(type=openapi.TYPE_OBJECT),
+                        'refresh': openapi.Schema(type=openapi.TYPE_STRING),
+                        'access': openapi.Schema(type=openapi.TYPE_STRING)
+                    }
+                )
+            ),
+            400: openapi.Response(
+                description="Données invalides"
+            )
+        },
+        tags=["Authentification"]
+    )
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -43,6 +139,28 @@ class RegisterView(APIView):
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
+    @swagger_auto_schema(
+        operation_summary="Se connecter",
+        operation_description="Authentifie un utilisateur et retourne les tokens JWT",
+        request_body=LoginSerializer,
+        responses={
+            200: openapi.Response(
+                description="Connexion réussie",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'user': openapi.Schema(type=openapi.TYPE_OBJECT),
+                        'refresh': openapi.Schema(type=openapi.TYPE_STRING),
+                        'access': openapi.Schema(type=openapi.TYPE_STRING)
+                    }
+                )
+            ),
+            400: openapi.Response(
+                description="Identifiants invalides"
+            )
+        },
+        tags=["Authentification"]
+    )
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
@@ -59,6 +177,26 @@ class LoginView(APIView):
 class PasswordResetView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_summary="Changer le mot de passe",
+        operation_description="Modifie le mot de passe de l'utilisateur connecté",
+        request_body=PasswordResetSerializer,
+        responses={
+            200: openapi.Response(
+                description="Mot de passe modifié avec succès",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'detail': openapi.Schema(type=openapi.TYPE_STRING)
+                    }
+                )
+            ),
+            400: openapi.Response(
+                description="Données invalides ou ancien mot de passe incorrect"
+            )
+        },
+        tags=["Authentification"]
+    )
     def post(self, request):
         serializer = PasswordResetSerializer(data=request.data)
         if serializer.is_valid():
@@ -79,6 +217,17 @@ class PasswordResetView(APIView):
 class CurrentUserView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_summary="Utilisateur actuel",
+        operation_description="Récupère les informations de l'utilisateur connecté",
+        responses={
+            200: openapi.Response(
+                description="Informations utilisateur récupérées avec succès",
+                schema=UserSerializer
+            )
+        },
+        tags=["Authentification"]
+    )
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)

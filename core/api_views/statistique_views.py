@@ -4,8 +4,21 @@ from core.models import ReservationSalle, ReservationMateriel
 from django.db.models import Q, Count
 from core.serializers import StatistiquesSerializer
 from core.permissions import IsEnseignant
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from django.utils.decorators import method_decorator
 
-
+@swagger_auto_schema(
+        operation_summary="Statistiques générales",
+        operation_description="Récupère les statistiques générales des réservations (salles et matériels les plus réservés)",
+        tags=["Statistiques"],
+        responses={
+            200: openapi.Response(
+                description="Statistiques récupérées avec succès",
+                schema=StatistiquesSerializer
+            )
+        }
+    )
 class StatistiquesView(generics.GenericAPIView):
     """Vue pour les statistiques générales"""
     permission_classes = [IsEnseignant]

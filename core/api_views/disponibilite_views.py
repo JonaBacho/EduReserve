@@ -4,12 +4,40 @@ from rest_framework.response import Response
 from rest_framework import status
 from core.models import ReservationSalle, ReservationMateriel
 from core.serializers import DisponibiliteSerializer
-
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 class DisponibiliteView(generics.GenericAPIView):
     """Vue pour vérifier la disponibilité d'une ressource"""
     permission_classes = [permissions.IsAuthenticated]
 
+
+    @swagger_auto_schema(
+        operation_summary="Vérifier la disponibilité",
+        operation_description="Vérifie la disponibilité d'une ressource (salle ou matériel) pour une date et un créneau donnés",
+        request_body=DisponibiliteSerializer,
+        responses={
+            200: openapi.Response(
+                description="Disponibilité vérifiée avec succès",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'type_ressource': openapi.Schema(type=openapi.TYPE_STRING),
+                        'ressource_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                        'date': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
+                        'creneau_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                        'disponible': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                        'conflit': openapi.Schema(type=openapi.TYPE_STRING,
+                                                  description="Message de conflit si non disponible")
+                    }
+                )
+            ),
+            400: openapi.Response(
+                description="Données invalides"
+            )
+        },
+        tags=["Disponibilité"]
+    )
     def post(self, request, *args, **kwargs):
         serializer = DisponibiliteSerializer(data=request.data)
         if serializer.is_valid():
