@@ -2,7 +2,7 @@ version: "3.9"
 services:
   edu-reserve:
     image: "${MY_IMAGE}"
-    container_name: edu-reserve
+    container_name: eduReserve
     restart: always
     volumes:
       - ./volumes/db.sqlite3:/app/db.sqlite3:rw
