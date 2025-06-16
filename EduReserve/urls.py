@@ -17,8 +17,27 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from core import urls as core_urls
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+from rest_framework import permissions
+
+schema_view = get_schema_view(
+   openapi.Info(
+      title="EduReserve Api",
+      default_version='v1',
+      description="Application de gestion de Réservation de salles et de matériels",
+      terms_of_service="https://www.google.com/policies/terms/",
+      contact=openapi.Contact(email="jonathabachelard@gmail.com"),
+      license=openapi.License(name="Free License"),
+   ),
+   public=True,
+   permission_classes=[permissions.AllowAny],
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include(core_urls)),
+    path('api/v1/doc', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/v1/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('swagger.json', schema_view.without_ui(cache_timeout=0), name='schema-json')
 ]
