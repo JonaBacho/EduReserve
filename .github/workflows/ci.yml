@@ -1,0 +1,89 @@
+name: Django CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  MY_IMAGE: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]')/app
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.11"
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Apply Migration
+      run: |
+        python manage.py makemigrations --merge --noinput
+        python manage.py migrate
+
+    - name: Run Tests
+      run: |
+        python manage.py test
+
+    - name: Log in to GitHub Packages
+      run: echo ${PERSONAL_ACCESS_TOKEN} | docker login ghcr.io -u ${{ secrets.NAMESPACE }} --password-stdin
+      env:
+        PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+    - name: Build images
+      run: |
+          docker build -t ${{ env.MY_IMAGE }} .
+
+    - name: Push images
+      run: |
+          docker push ${{ env.MY_IMAGE }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout master
+      uses: actions/checkout@v2
+
+    - name: Add environment variables to .env
+      run: |
+          echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
+          echo FULTANG_IMAGE=${{ env.MY_IMAGE }} >> .env
+          echo NAMESPACE=${{ secrets.NAMESPACE }} >> .env
+          echo PERSONAL_ACCESS_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }} >> .env
+
+    - name: Add the private SSH key to the ssh-agent
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+          mkdir -p ~/.ssh
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          ssh-add - <<< "${{ secrets.PRIVATE_KEY }}"
+
+    - name: Build and deploy images on Server
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+          scp  -o StrictHostKeyChecking=no -r ./.env ./fultang ./polyclinic ./Dockerfile ./manage.py ./requirements.txt ./docker-compose.yml ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP_ADDRESS }}:/home/${{ secrets.REMOTE_USER }}/fultang/backend
+          ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP_ADDRESS }} << 'ENDSSH'
+            cd /home/${{ secrets.REMOTE_USER }}/fultang/backend
+            source .env
+            sudo docker login ghcr.io -u $NAMESPACE -p $PERSONAL_ACCESS_TOKEN
+            sudo docker compose -f ./docker-compose.yml down
+            sudo docker rmi -f $IMAGE_NAME
+            sudo docker pull $FULTANG_IMAGE
+            sudo docker compose -f ./docker-compose.yml up -d
+          ENDSSH
