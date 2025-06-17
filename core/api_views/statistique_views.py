@@ -8,7 +8,12 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.utils.decorators import method_decorator
 
-@swagger_auto_schema(
+
+class StatistiquesView(generics.GenericAPIView):
+    """Vue pour les statistiques générales"""
+    permission_classes = [IsEnseignant]
+        
+    @swagger_auto_schema(
         operation_summary="Statistiques générales",
         operation_description="Récupère les statistiques générales des réservations (salles et matériels les plus réservés)",
         tags=["Statistiques"],
@@ -19,10 +24,6 @@ from django.utils.decorators import method_decorator
             )
         }
     )
-class StatistiquesView(generics.GenericAPIView):
-    """Vue pour les statistiques générales"""
-    permission_classes = [IsEnseignant]
-
     def get(self, request, *args, **kwargs):
         # Statistiques générales
         total_reservations_salles = ReservationSalle.objects.count()
