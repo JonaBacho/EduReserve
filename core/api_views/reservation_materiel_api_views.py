@@ -98,6 +98,11 @@ class ReservationMaterielViewSet(viewsets.ModelViewSet):
     pagination_class = LargeResultsSetPagination
 
     def get_queryset(self):
+        
+        # cas de swagger
+        if getattr(self, 'swagger_fake_view', False):
+            return ReservationMateriel.objects.none()
+            
         queryset = ReservationMateriel.objects.select_related(
             'enseignant', 'salle', 'formation', 'creneau'
         )
