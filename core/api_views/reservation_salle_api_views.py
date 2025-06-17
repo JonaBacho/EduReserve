@@ -101,7 +101,7 @@ class ReservationSalleViewSet(viewsets.ModelViewSet):
 
         # cas de swagger
         if getattr(self, 'swagger_fake_view', False):
-            return ReservationMateriel.objects.none()
+            return ReservationSalle.objects.none()
             
         queryset = ReservationSalle.objects.select_related(
             'enseignant', 'salle', 'formation', 'creneau'
