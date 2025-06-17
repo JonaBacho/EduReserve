@@ -29,7 +29,7 @@ router.register(r'reservations-materiels', ReservationMaterielViewSet, basename=
 router.register(r'recapitulatifs', RecapitulatifHoraireViewSet, basename='recapitulatifhoraire')
 
 urlpatterns = [
-    path('api/', include(router.urls)),
+    path('', include(router.urls)),
     path('planning/', PlanningGeneralView.as_view(), name='planning-general'),
     path('statistiques/', StatistiquesView.as_view(), name='statistiques'),
     path('disponibilite/', DisponibiliteView.as_view(), name='disponibilite'),
